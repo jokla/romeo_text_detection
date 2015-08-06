@@ -29,16 +29,32 @@ int main(int argc, const char* argv[]){
 
 
     std::string opt_ip = "198.18.0.1";
+    bool speech = true;
+    bool tess_num = false;
 
-    if (argc == 3) {
-        if (std::string(argv[1]) == "-ip")
-            opt_ip = argv[2];
+
+    for (unsigned int i=0; i<argc; i++) {
+        if (std::string(argv[i]) == "--ip")
+            opt_ip = argv[i+1];
+        else if (std::string(argv[i]) == "--no-speech")
+            speech = false;
+        else if (std::string(argv[i]) == "--tess-num")
+            tess_num = true;
+        else if (std::string(argv[i]) == "--help") {
+            std::cout << "Usage: " << argv[0] << " [--ip <robot address>] [--no-speech] [--tess-num] [--help]" << std::endl;
+            return 0;
+        }
     }
+
+
+
+
 
 
     // Open Proxy for the speech
     AL::ALTextToSpeechProxy tts(opt_ip, 9559);
     tts.setLanguage("English");
+
 
     vpNaoqiGrabber g;
     if (! opt_ip.empty()) {
@@ -61,7 +77,7 @@ int main(int argc, const char* argv[]){
     cvtColor( img_ocv, gray_image, CV_BGR2GRAY );
 
     //imshow("gray_image",gray_image);
-   // waitKey( 0 );
+    // waitKey( 0 );
 
     Mat gray_image_one; //= cv::Mat(cv::Size(g.getWidth(), g.getHeight()), CV_8UC1);;
     // gray_image.convertTo(gray_image_one, CV_8UC1, 255.0/2048.0);
@@ -77,8 +93,8 @@ int main(int argc, const char* argv[]){
     Mat convertedTo8UC1;
     gray_image_one.convertTo(convertedTo8UC1, CV_8UC1);
 
-   // imshow("convertedTo8UC1",convertedTo8UC1);
-  //  waitKey( 0 );
+    // imshow("convertedTo8UC1",convertedTo8UC1);
+    //  waitKey( 0 );
 
     //    temp.convertTo(gray_image_one, CV_8UC1);
     //    imshow("gray_image_one",gray_image_one);
@@ -106,16 +122,20 @@ int main(int argc, const char* argv[]){
     tess.SetPageSegMode(tesseract::PSM_SINGLE_WORD);
 
 
-//    tess.SetVariable("tessedit_char_whitelist",
-//                     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-//                    "0123456789");
-//    tess.SetVariable("tessedit_char_whitelist",
-//                     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    //    tess.SetVariable("tessedit_char_whitelist",
+    //                     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    //                    "0123456789");
+
+    if (tess_num)
+        tess.SetVariable("tessedit_char_whitelist", "0123456789");
+    else
 
 
+        tess.SetVariable("tessedit_char_whitelist",
+                         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-    tess.SetVariable("tessedit_char_whitelist", "0123456789");
-   tess.SetVariable("language_model_penalty_non_dict_word", "0");
+
+    tess.SetVariable("language_model_penalty_non_dict_word", "0");
 
 
 
@@ -196,8 +216,8 @@ int main(int argc, const char* argv[]){
                 bool bSuccess = cv::imwrite(nameFile, binary_roi_resized, compression_params); //write the image to file
 
 
-
-                int id = tts.post.say(out);
+                if (speech)
+                    int id = tts.post.say(out);
                 //tts.wait(id,500);
                 //waitKey( 0 );
 
@@ -212,8 +232,8 @@ int main(int argc, const char* argv[]){
     std::vector<int> compression_params; //vector that stores the compression parameters of the image
     compression_params.push_back(CV_IMWRITE_JPEG_QUALITY); //specify the compression technique
     compression_params.push_back(100); //specify the compression quality
-     cv::imwrite("Result.jpg", img_disp, compression_params); //write the image to file
-     cv::imwrite("Original.jpg", img_ocv, compression_params); //write the image to file
+    cv::imwrite("Result.jpg", img_disp, compression_params); //write the image to file
+    cv::imwrite("Original.jpg", img_ocv, compression_params); //write the image to file
 
 
 
